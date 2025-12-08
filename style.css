@@ -17,12 +17,12 @@ body {
   gap: 4rem;
   font-size: 2rem;
   padding: 1rem 0;
-  animation: slide 10s linear infinite;
+  animation: slide 24s linear infinite;
   color: #fff;
 }
 
 @keyframes slide {
-  0% { transform: translateX(-100%); }
+  0% { transform: translateX(-60%); }
   100% { transform: translateX(50%);}
 }
 
