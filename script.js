@@ -22,7 +22,6 @@ function addImageToGallery(url, title, description) {
 
   const caption = document.createElement("figcaption");
 
-
   const titleRow = document.createElement("div");
   titleRow.className = "caption-row";
 
@@ -39,12 +38,12 @@ function addImageToGallery(url, title, description) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
     });
+
     figure.remove();
   });
 
   titleRow.appendChild(titleSpan);
   titleRow.appendChild(delBtn);
-
 
   const descP = document.createElement("p");
   descP.textContent = description;
@@ -59,7 +58,6 @@ function addImageToGallery(url, title, description) {
 }
 
 let selectedFile = null;
-
 
 document.getElementById("imageInput").addEventListener("change", function (event) {
   selectedFile = event.target.files[0];
@@ -89,18 +87,19 @@ document.getElementById("submitTitle").addEventListener("click", async function 
   closeModal();
 });
 
-
 async function loadImages() {
   const res = await fetch("/api/list");
   const images = await res.json();
-  images.forEach(img => addImageToGallery(img.url, img.title, img.description));
+  images.forEach(img => {
+    addImageToGallery(img.url, img.title, img.description);
+  });
 }
 
 window.addEventListener("DOMContentLoaded", loadImages);
 
-
 function closeModal() {
   const modal = document.getElementById("titleModal");
+
   modal.style.display = "none";
 
   document.getElementById("modalPreview").src = "";
@@ -109,7 +108,6 @@ function closeModal() {
 
   const fileInput = document.getElementById("imageInput");
   fileInput.value = "";
-
   selectedFile = null;
 }
 

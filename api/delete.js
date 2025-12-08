@@ -1,5 +1,4 @@
-import { del } from "@vercel/blob";
-import { list } from "@vercel/blob";
+import { del, get, put } from "@vercel/blob";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -7,17 +6,20 @@ export default async function handler(req, res) {
   const { url } = req.body;
 
   await del(url);
-  const { blobs } = await list({ prefix: "meta-" });
 
-  for (const blob of blobs) {
-    const metaUrl = blob.url;
-    const json = await fetch(metaUrl).then(r => r.json());
+  let gallery = [];
+  try {
+    const file = await get("gallery.json");
+    const text = await file.text();
+    gallery = JSON.parse(text);
+  } catch {}
 
-    if (json.url === url) {
-      await del(metaUrl);
-      break;
-    }
-  }
+  gallery = gallery.filter(item => item.url !== url);
+
+  await put("gallery.json", JSON.stringify(gallery), {
+    access: "public",
+    contentType: "application/json"
+  });
 
   res.status(200).json({ ok: true });
 }
