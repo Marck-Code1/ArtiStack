@@ -1,13 +1,26 @@
-import { kv } from "@vercel/kv";
 import { del } from "@vercel/blob";
+import { list } from "@vercel/blob";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { url } = await req.json();
+  const { url } = req.body;
 
-  await del(url);              // Delete from Blob
-  await kv.lrem("images", 0, url); // Remove from KV list
+  // Delete the image
+  await del(url);
 
-  return res.status(200).json({ ok: true });
+  // Delete the matching meta JSON
+  const { blobs } = await list({ prefix: "meta-" });
+
+  for (const blob of blobs) {
+    const metaUrl = blob.url;
+    const json = await fetch(metaUrl).then(r => r.json());
+
+    if (json.url === url) {
+      await del(metaUrl);
+      break;
+    }
+  }
+
+  res.status(200).json({ ok: true });
 }
