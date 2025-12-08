@@ -22,7 +22,7 @@ function addImageToGallery(url, title, description) {
 
   const caption = document.createElement("figcaption");
 
-  // Title + delete button in same row
+
   const titleRow = document.createElement("div");
   titleRow.className = "caption-row";
 
@@ -45,7 +45,7 @@ function addImageToGallery(url, title, description) {
   titleRow.appendChild(titleSpan);
   titleRow.appendChild(delBtn);
 
-  // Description
+
   const descP = document.createElement("p");
   descP.textContent = description;
 
