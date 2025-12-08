@@ -34,7 +34,7 @@ document.getElementById("submitTitle").addEventListener("click", function () {
   caption.textContent = `${title} — ${year}`;
 
   const delBtn = document.createElement("button");
-  delBtn.textContent = "Delete";
+  delBtn.textContent = "Eliminar";
   delBtn.className = "delete-btn";
 
   delBtn.addEventListener("click", () => {

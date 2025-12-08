@@ -22,8 +22,8 @@ body {
 }
 
 @keyframes slide {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-50%);}
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(50%);}
 }
 
 .upload-section {
@@ -31,6 +31,10 @@ body {
   margin: 2rem 0;
 }
 
+.upload-section :hover {
+
+  background-color: #97140b;
+}
 .upload-button {
   padding: 12px 24px;
   background: #390703;
@@ -40,6 +44,8 @@ body {
   font-size: 1rem;
   display: inline-block;
 }
+
+
 
 .upload-button input {
   display: none;
@@ -54,14 +60,18 @@ body {
 /* Objeto que tiene las imagenes */
 figure {
   margin: 0;
-  background: white;
+  background: #111111;
   border-radius: 6px;
+  border-color: #ddd;
   overflow: hidden;
   box-shadow: 0 4px 9px rgba(0,0,0,0.1);
   animation: bounce 1s ease-in;
   animation-iteration-count: 1;
 }
 
+figure :hover{
+ background-color: #2b2b2b;
+}
 @keyframes bounce {
   0% { transform: translateX(100%); }
   70% { transform: translateX(80%);}
@@ -79,7 +89,22 @@ figcaption {
   color: #555;
   border-top: 1px solid #eee;
 }
-/* El prompt que sale al subir imagen */
+
+.delete-btn {
+  padding: 0.3rem 0.6rem;
+  background: #d33;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #b00;
+}
+/* La pestaña que sale al subir imagen */
 .modal {
   position: fixed;
   inset: 0;
