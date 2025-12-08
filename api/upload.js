@@ -1,26 +1,46 @@
 import { put } from "@vercel/blob";
+import Busboy from "busboy";
 
 export const config = {
-  api: { bodyParser: false }
+  api: {
+    bodyParser: false,
+  },
 };
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const form = await req.formData();
-  const file = form.get("file");
-  const title = form.get("title");
-  const description = form.get("description");
+  const bb = Busboy({ headers: req.headers });
 
-  const id = Date.now();
+  let fileBuffer = Buffer.from([]);
+  let fileName = "";
+  let title = "";
+  let description = "";
 
-  const blob = await put(`art-${id}`, file, { access: "public" });
+  bb.on("file", (name, file, info) => {
+    fileName = info.filename;
 
-  const meta = { url: blob.url, title, description };
-  await put(`meta-${id}.json`, JSON.stringify(meta), {
-    access: "public",
-    contentType: "application/json"
+    file.on("data", (data) => {
+      fileBuffer = Buffer.concat([fileBuffer, data]);
+    });
   });
 
-  return res.status(200).json(meta);
+  bb.on("field", (name, value) => {
+    if (name === "title") title = value;
+    if (name === "description") description = value;
+  });
+
+  bb.on("finish", async () => {
+    const blob = await put(`art-${Date.now()}-${fileName}`, fileBuffer, {
+      access: "public",
+    });
+
+    return res.status(200).json({
+      url: blob.url,
+      title,
+      description,
+    });
+  });
+
+  req.pipe(bb);
 }
