@@ -17,13 +17,14 @@ body {
   gap: 4rem;
   font-size: 2rem;
   padding: 1rem 0;
-  animation: slide 24s linear infinite;
+  animation: slide 99s linear;
+  
   color: #fff;
 }
 
 @keyframes slide {
-  0% { transform: translateX(-60%); }
-  100% { transform: translateX(50%);}
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(1000%);}
 }
 
 .upload-section {
@@ -65,7 +66,7 @@ figure {
   border-color: #ddd;
   overflow: hidden;
   box-shadow: 0 4px 9px rgba(0,0,0,0.1);
-  animation: bounce 1s ease-in;
+  animation: bounce 5s ease-in;
   animation-iteration-count: 1;
 }
 
@@ -86,7 +87,7 @@ figure img {
 figcaption {
   padding: 0.8rem;
   font-size: 0.9rem;
-  color: #555;
+  color: #fff;
   border-top: 1px solid #eee;
 }
 
@@ -160,4 +161,16 @@ figcaption {
 
 .close-modal:hover {
   opacity: 1;
+}
+/* Para el boton de login de arriba de la pagina */
+.login {
+  padding: 6px 12px;
+  background: #390703;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: inline-block;
+  position: relative;
+  align-items: cen;
 }
