@@ -83,9 +83,8 @@ document.getElementById("imageInput").addEventListener("change", function (event
 
 document.getElementById("submitTitle").addEventListener("click", async function () {
   if (!selectedFile) return;
-
   const title = document.getElementById("artTitle").value || "Untitled";
-  const description = document.getElementById("artYear").value || "";
+  const description = document.getElementById("artDescription").value || "";
 
   const uploaded = await uploadToServer(selectedFile, title, description);
 
@@ -95,7 +94,7 @@ document.getElementById("submitTitle").addEventListener("click", async function 
 
   document.getElementById("titleModal").style.display = "none";
   document.getElementById("artTitle").value = "";
-  document.getElementById("artYear").value = "";
+  document.getElementById("artDescription").value = "";
   selectedFile = null;
 });
 
@@ -155,9 +154,9 @@ function closeModal() {
 
   document.getElementById("modalPreview").src = "";
   document.getElementById("artTitle").value = "";
-  document.getElementById("artYear").value = "";
+  document.getElementById("artDescription").value = "";
 
-  // RESET THE FILE INPUT
+
   const fileInput = document.getElementById("imageInput");
   fileInput.value = "";
   selectedFile = null;

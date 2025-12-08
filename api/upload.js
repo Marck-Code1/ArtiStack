@@ -14,10 +14,8 @@ export default async function handler(req, res) {
 
   const id = Date.now();
 
-  // Store the image
   const blob = await put(`art-${id}`, file, { access: "public" });
 
-  // Store metadata as JSON blob
   const meta = { url: blob.url, title, description };
   await put(`meta-${id}.json`, JSON.stringify(meta), {
     access: "public",

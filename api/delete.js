@@ -6,10 +6,7 @@ export default async function handler(req, res) {
 
   const { url } = req.body;
 
-  // Delete the image
   await del(url);
-
-  // Delete the matching meta JSON
   const { blobs } = await list({ prefix: "meta-" });
 
   for (const blob of blobs) {
