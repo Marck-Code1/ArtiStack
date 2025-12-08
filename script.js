@@ -1,31 +1,59 @@
-async function uploadImage() {
-    const file = document.getElementById("fileInput").files[0];
-    if (!file) return alert("Choose a file!");
+let selectedFile = null;
 
-    const form = new FormData();
-    form.append("file", file);
+document.getElementById("imageInput").addEventListener("change", function (event) {
+  selectedFile = event.target.files[0];
+  if (!selectedFile) return;
 
-    const res = await fetch("/api/upload", {
-        method: "POST",
-        body: form
-    });
+    const reader = new FileReader();
+  reader.onload = () => {
+    const modalImg = document.getElementById("modalPreview");
+    modalImg.src = reader.result;
+    modalImg.style.display = "block";
+  };
+  reader.readAsDataURL(selectedFile);
+ 
+  document.getElementById("titleModal").style.display = "flex";
+});
 
-    alert("Uploaded!");
-    loadImages();
-}
+document.getElementById("submitTitle").addEventListener("click", function () {
+  if (!selectedFile) return;
 
-async function loadImages() {
-    const res = await fetch("/api/list");
-    const images = await res.json();
+  const title = document.getElementById("artTitle").value || "Untitled";
+  const year = document.getElementById("artYear").value || new Date().getFullYear();
 
-    const gallery = document.getElementById("gallery");
-    gallery.innerHTML = "";
+  const gallery = document.getElementById("gallery");
+  const reader = new FileReader();
 
-    images.forEach(url => {
-        const img = document.createElement("img");
-        img.src = url;
-        gallery.appendChild(img);
-    });
-}
+  reader.onload = () => {
+  const figure = document.createElement("figure");
 
-loadImages();
+  const img = document.createElement("img");
+  img.src = reader.result;
+
+  const caption = document.createElement("figcaption");
+  caption.textContent = `${title} — ${year}`;
+
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "Delete";
+  delBtn.className = "delete-btn";
+
+  delBtn.addEventListener("click", () => {
+    figure.remove();
+  });
+
+  figure.appendChild(img);
+  figure.appendChild(caption);
+  figure.appendChild(delBtn);
+
+  gallery.appendChild(figure);
+  };
+
+  reader.readAsDataURL(selectedFile);
+
+  // close modal + reset inputs
+  document.getElementById("titleModal").style.display = "none";
+  document.getElementById("artTitle").value = "";
+  document.getElementById("artYear").value = "";
+
+  selectedFile = null;
+});

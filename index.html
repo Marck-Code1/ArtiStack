@@ -1,20 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Image Upload</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artistack</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="header">
+    
+    <h1 class="slider-text">
+      <span>Bienvenidos a Artistack</span>
+     
+    </h1>
+  </header>
 
-<h1>Image Upload</h1>
+  <main>
+    <section class="upload-section">
+      <label class="upload-button">
+        Subir imagen
+        <input type="file" id="imageInput" accept="image/*">
+      </label>
+    </section>
 
-<input type="file" id="fileInput">
+    <section id="gallery" class="gallery"></section>
+  </main>
 
-<button onclick="uploadImage()">Upload</button>
 
-<h2>Your Images</h2>
-<div id="gallery"></div>
 
-<script src="script.js"></script>
+
+<div id="titleModal" class="modal">
+  <div class="modal-content">
+    <h2>Información de la imagen</h2>
+
+    
+    <img id="modalPreview" style="width:100%; border-radius:6px; display:none;" />
+
+    <label>Titulo</label>
+    <input id="artTitle" type="text" placeholder="Nombre de la imagen">
+
+    <label>Descripción (opcional)</label>
+    <input id="artYear" type="text" placeholder="Fecha">
+
+    <button id="submitTitle">Subir</button>
+  </div>
+</div>
+
+
+  <script src="script.js"></script>
+
+
 </body>
 </html>
