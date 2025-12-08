@@ -1,55 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Artistack</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="header">
-    
-    <h1 class="slider-text">
-      <span>Bienvenidos a Artistack</span>
-     
-    </h1>
+    <h1 class="slider-text"><span>Bienvenidos a Artistack</span></h1>
   </header>
 
   <main>
     <section class="upload-section">
       <label class="upload-button">
         Subir imagen
-        <input type="file" id="imageInput" accept="image/*">
+        <input type="file" id="imageInput" accept="image/*" />
       </label>
     </section>
 
     <section id="gallery" class="gallery"></section>
   </main>
 
+  <div id="titleModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <button class="close-modal" id="closeModalBtn">✕</button>
+      <h2>Información de la imagen</h2>
 
+      <img id="modalPreview" style="width:100%; border-radius:6px; display:none;" alt="Vista previa" />
 
+      <label>Título</label>
+      <input id="artTitle" type="text" placeholder="Nombre de la imagen" />
 
-<div id="titleModal" class="modal">
-  <div class="modal-content">
-    <button class="close-modal" id="closeModalBtn">✕</button>
-    <h2>Información de la imagen</h2>
+      <label>Descripción</label>
+      <input id="artDescription" type="text" placeholder="Descripción" />
 
-    
-    <img id="modalPreview" style="width:100%; border-radius:6px; display:none;" />
-
-    <label>Titulo</label>
-    <input id="artTitle" type="text" placeholder="Nombre de la imagen">
-
-    <label>Descripción</label>
-    <input id="artDescription" type="text" placeholder="Descripción">
-
-    <button id="submitTitle">Subir</button>
+      <button id="submitTitle">Subir</button>
+    </div>
   </div>
-</div>
-
 
   <script src="script.js"></script>
-
-
 </body>
 </html>

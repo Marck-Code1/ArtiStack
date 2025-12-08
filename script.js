@@ -1,3 +1,4 @@
+
 async function uploadToServer(file, title, description) {
   const form = new FormData();
   form.append("file", file);
@@ -9,9 +10,9 @@ async function uploadToServer(file, title, description) {
     body: form
   });
 
+  if (!res.ok) throw new Error("Error al subir la imagen");
   return await res.json();
 }
-
 function addImageToGallery(url, title, description) {
   const gallery = document.getElementById("gallery");
 
@@ -19,34 +20,38 @@ function addImageToGallery(url, title, description) {
 
   const img = document.createElement("img");
   img.src = url;
+  img.alt = title || "Artwork";
 
   const caption = document.createElement("figcaption");
-
   const titleRow = document.createElement("div");
   titleRow.className = "caption-row";
 
   const titleSpan = document.createElement("span");
-  titleSpan.textContent = title;
+  titleSpan.textContent = title || "Untitled";
 
   const delBtn = document.createElement("button");
   delBtn.textContent = "✕";
   delBtn.className = "delete-btn";
 
   delBtn.addEventListener("click", async () => {
-    await fetch("/api/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url })
-    });
-
-    figure.remove();
+    try {
+      await fetch("/api/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+      });
+      figure.remove();
+    } catch (e) {
+      console.error("Delete failed", e);
+      alert("No se pudo eliminar");
+    }
   });
 
   titleRow.appendChild(titleSpan);
   titleRow.appendChild(delBtn);
 
   const descP = document.createElement("p");
-  descP.textContent = description;
+  descP.textContent = description || "";
 
   caption.appendChild(titleRow);
   caption.appendChild(descP);
@@ -54,61 +59,69 @@ function addImageToGallery(url, title, description) {
   figure.appendChild(img);
   figure.appendChild(caption);
 
-  gallery.appendChild(figure);
+  gallery.prepend(figure); 
 }
 
 let selectedFile = null;
 
-document.getElementById("imageInput").addEventListener("change", function (event) {
-  selectedFile = event.target.files[0];
-  if (!selectedFile) return;
+const imageInput = document.getElementById("imageInput");
+const titleModal = document.getElementById("titleModal");
+const modalPreview = document.getElementById("modalPreview");
+const submitBtn = document.getElementById("submitTitle");
+const closeBtn = document.getElementById("closeModalBtn");
+
+imageInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  selectedFile = file;
 
   const reader = new FileReader();
   reader.onload = () => {
-    const modalImg = document.getElementById("modalPreview");
-    modalImg.src = reader.result;
-    modalImg.style.display = "block";
+    modalPreview.src = reader.result;
+    modalPreview.style.display = "block";
   };
-  reader.readAsDataURL(selectedFile);
+  reader.readAsDataURL(file);
 
-  document.getElementById("titleModal").style.display = "flex";
+  titleModal.style.display = "flex";
 });
 
-document.getElementById("submitTitle").addEventListener("click", async function () {
-  if (!selectedFile) return;
+closeBtn.addEventListener("click", closeModal);
+
+function closeModal() {
+  titleModal.style.display = "none";
+  modalPreview.src = "";
+  modalPreview.style.display = "none";
+  document.getElementById("artTitle").value = "";
+  document.getElementById("artDescription").value = "";
+  imageInput.value = "";
+  selectedFile = null;
+}
+
+submitBtn.addEventListener("click", async () => {
+  if (!selectedFile) return alert("Selecciona una imagen primero");
 
   const title = document.getElementById("artTitle").value || "Untitled";
   const description = document.getElementById("artDescription").value || "";
 
-  const uploaded = await uploadToServer(selectedFile, title, description);
-
-  addImageToGallery(uploaded.url, uploaded.title, uploaded.description);
-
-  closeModal();
+  try {
+    const uploaded = await uploadToServer(selectedFile, title, description);
+    addImageToGallery(uploaded.url, uploaded.title, uploaded.description);
+    closeModal();
+  } catch (err) {
+    console.error(err);
+    alert("Error al subir la imagen");
+  }
 });
 
 async function loadImages() {
-  const res = await fetch("/api/list");
-  const images = await res.json();
-  images.forEach(img => {
-    addImageToGallery(img.url, img.title, img.description);
-  });
+  try {
+    const res = await fetch("/api/list");
+    if (!res.ok) throw new Error("list failed");
+    const images = await res.json();
+    images.forEach(img => addImageToGallery(img.url, img.title, img.description));
+  } catch (err) {
+    console.warn("No gallery yet or failed to load", err);
+  }
 }
-
 window.addEventListener("DOMContentLoaded", loadImages);
-
-function closeModal() {
-  const modal = document.getElementById("titleModal");
-
-  modal.style.display = "none";
-
-  document.getElementById("modalPreview").src = "";
-  document.getElementById("artTitle").value = "";
-  document.getElementById("artDescription").value = "";
-
-  const fileInput = document.getElementById("imageInput");
-  fileInput.value = "";
-  selectedFile = null;
-}
-
-document.getElementById("closeModalBtn").addEventListener("click", closeModal);
