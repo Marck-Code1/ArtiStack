@@ -1,84 +1,95 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js";
 
-async function uploadToServer(file, title, description) {
-  const form = new FormData();
-  form.append("file", file);
-  form.append("title", title);
-  form.append("description", description);
+const supabase = createClient(
+  "https://cgyrgazknzagkykvtzod.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneXJnYXprbnphZ2t5a3Z0em9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyNDYxMjIsImV4cCI6MjA4MDgyMjEyMn0.zt5eAY9_7pwvEe6i64vYOVM83_Jkoi2g5kTfAMM01wQ"
+);
 
-  const res = await fetch("/api/upload", {
-    method: "POST",
-    body: form
-  });
+/* ============================
+   ESTADO DE SESIÓN
+============================ */
 
-  if (!res.ok) throw new Error("Error al subir la imagen");
-  return await res.json();
-}
-function addImageToGallery(url, title, description) {
-  const gallery = document.getElementById("gallery");
+async function updateUI() {
+  const { data: { session } } = await supabase.auth.getSession();
 
-  const figure = document.createElement("figure");
+  const loginBtn = document.getElementById("openLoginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-  const img = document.createElement("img");
-  img.src = url;
-  img.alt = title || "Artwork";
+  if (!logoutBtn) return;
 
-  const caption = document.createElement("figcaption");
-  const titleRow = document.createElement("div");
-  titleRow.className = "caption-row";
-
-  const titleSpan = document.createElement("span");
-  titleSpan.textContent = title || "Untitled";
-
-  const delBtn = document.createElement("button");
-  delBtn.textContent = "✕";
-  delBtn.className = "delete-btn";
-
-  delBtn.addEventListener("click", async () => {
-    try {
-      await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url })
-      });
-      figure.remove();
-    } catch (e) {
-      console.error("Delete failed", e);
-      alert("No se pudo eliminar");
-    }
-  });
-
-  titleRow.appendChild(titleSpan);
-  titleRow.appendChild(delBtn);
-
-  const descP = document.createElement("p");
-  descP.textContent = description || "";
-
-  caption.appendChild(titleRow);
-  caption.appendChild(descP);
-
-  figure.appendChild(img);
-  figure.appendChild(caption);
-
-  gallery.prepend(figure); 
+  if (session) {
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+  } else {
+    loginBtn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
+  }
 }
 
-let selectedFile = null;
+/* ============================
+   MODAL LOGIN
+============================ */
+
+const loginModal = document.getElementById("loginModal");
+const openLogin = document.getElementById("openLoginBtn");
+const closeLogin = document.getElementById("closeLoginBtn");
+const loginBtn = document.getElementById("loginBtn");
+
+openLogin.addEventListener("click", () => {
+  loginModal.style.display = "flex";
+});
+
+closeLogin.addEventListener("click", () => {
+  loginModal.style.display = "none";
+});
+
+window.addEventListener("click", (e) => {
+  if (e.target === loginModal) loginModal.style.display = "none";
+});
+
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("loginEmail").value;
+  const password = document.getElementById("loginPassword").value;
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+
+  loginModal.style.display = "none";
+  updateUI();
+});
+
+/* ============================
+   LOGOUT
+============================ */
+
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    updateUI();
+  });
+}
+
+/* ============================
+   MODAL SUBIR IMAGEN
+============================ */
 
 const imageInput = document.getElementById("imageInput");
 const titleModal = document.getElementById("titleModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const submitTitle = document.getElementById("submitTitle");
 const modalPreview = document.getElementById("modalPreview");
-const submitBtn = document.getElementById("submitTitle");
-const closeBtn = document.getElementById("closeModalBtn");
 
-imageInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
+let selectedFile = null;
+
+imageInput.addEventListener("change", (event) => {
+  const file = event.target.files[0];
   if (!file) return;
-
   selectedFile = file;
 
   const reader = new FileReader();
-  reader.onload = () => {
-    modalPreview.src = reader.result;
+  reader.onload = (e) => {
+    modalPreview.src = e.target.result;
     modalPreview.style.display = "block";
   };
   reader.readAsDataURL(file);
@@ -86,42 +97,87 @@ imageInput.addEventListener("change", (e) => {
   titleModal.style.display = "flex";
 });
 
-closeBtn.addEventListener("click", closeModal);
-
-function closeModal() {
+closeModalBtn.addEventListener("click", () => {
   titleModal.style.display = "none";
-  modalPreview.src = "";
-  modalPreview.style.display = "none";
-  document.getElementById("artTitle").value = "";
-  document.getElementById("artDescription").value = "";
   imageInput.value = "";
-  selectedFile = null;
-}
+});
 
-submitBtn.addEventListener("click", async () => {
-  if (!selectedFile) return alert("Selecciona una imagen primero");
-
-  const title = document.getElementById("artTitle").value || "Untitled";
-  const description = document.getElementById("artDescription").value || "";
-
-  try {
-    const uploaded = await uploadToServer(selectedFile, title, description);
-    addImageToGallery(uploaded.url, uploaded.title, uploaded.description);
-    closeModal();
-  } catch (err) {
-    console.error(err);
-    alert("Error al subir la imagen");
+window.addEventListener("click", (event) => {
+  if (event.target === titleModal) {
+    titleModal.style.display = "none";
+    imageInput.value = "";
   }
 });
 
+/* ============================
+   SUBIR IMAGEN
+============================ */
+
+submitTitle.addEventListener("click", async () => {
+  const title = document.getElementById("artTitle").value;
+  const description = document.getElementById("artDescription").value;
+
+  const { data: { session } } = await supabase.auth.getSession();
+
+  const formData = new FormData();
+  formData.append("file", selectedFile);
+  formData.append("title", title);
+  formData.append("description", description);
+  formData.append("userId", session?.user?.id || "anon");
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body: formData
+  });
+
+  if (!res.ok) return alert("Error subiendo");
+
+  titleModal.style.display = "none";
+  imageInput.value = "";
+  loadImages();
+});
+
+/* ============================
+   GALERÍA
+============================ */
+
 async function loadImages() {
-  try {
-    const res = await fetch("/api/list");
-    if (!res.ok) throw new Error("list failed");
-    const images = await res.json();
-    images.forEach(img => addImageToGallery(img.url, img.title, img.description));
-  } catch (err) {
-    console.warn("No gallery yet or failed to load", err);
-  }
+  const res = await fetch("/api/list");
+  const images = await res.json();
+
+  const gallery = document.getElementById("gallery");
+  gallery.innerHTML = "";
+
+  images.forEach(img => {
+    const fig = document.createElement("figure");
+
+    fig.innerHTML = `
+      <img src="${img.url}">
+      <figcaption>
+        <strong>${img.title}</strong> — ${img.description}<br>
+        <small>Subido por: ${img.user_id}</small>
+        <button class="delete-btn">Eliminar</button>
+      </figcaption>
+    `;
+
+    fig.querySelector(".delete-btn").onclick = async () => {
+      await fetch("/api/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: img.url })
+      });
+      loadImages();
+    };
+
+    gallery.appendChild(fig);
+  });
 }
-window.addEventListener("DOMContentLoaded", loadImages);
+
+/* ============================
+   INIT
+============================ */
+
+window.addEventListener("DOMContentLoaded", () => {
+  updateUI();
+  loadImages();
+});

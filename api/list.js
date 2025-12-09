@@ -1,19 +1,15 @@
-import { list } from "@vercel/blob";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
-  try {
-    const { blobs } = await list({ prefix: "gallery.json" });
-    if (!blobs || blobs.length === 0) return res.status(200).json([]);
+  const { data } = await supabase
+    .from("gallery")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    const blob = blobs[0];
-    const r = await fetch(blob.url);
-    if (!r.ok) return res.status(200).json([]);
-    const text = await r.text();
-    const data = JSON.parse(text || "[]");
-
-    res.status(200).json(data.reverse());
-  } catch (err) {
-    console.warn("list read failed", err);
-    res.status(200).json([]);
-  }
+  res.status(200).json(data || []);
 }

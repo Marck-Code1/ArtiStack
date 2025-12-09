@@ -1,73 +1,61 @@
 import Busboy from "busboy";
-import { put, list } from "@vercel/blob";
+import { put } from "@vercel/blob";
+import { createClient } from "@supabase/supabase-js";
 
 export const config = {
   api: { bodyParser: false }
 };
 
-async function readGallery() {
-  try {
-    const { blobs } = await list({ prefix: "gallery.json" });
-    if (!blobs || blobs.length === 0) return [];
-    const blob = blobs[0];
-    const r = await fetch(blob.url);
-    if (!r.ok) return [];
-    const txt = await r.text();
-    return JSON.parse(txt || "[]");
-  } catch (e) {
-    return [];
-  }
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE
+);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  const token = req.headers.authorization?.replace("Bearer ", "");
+
+  const { data: auth, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !auth?.user) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const userId = auth.user.id;
+
   const busboy = Busboy({ headers: req.headers });
+  let fileData, title, description;
 
-  let fileData = null;
-  let fileName = null;
-  let title = "Untitled";
-  let description = "";
-
-  busboy.on("file", (fieldname, file, info) => {
+  busboy.on("file", (name, file) => {
     const chunks = [];
-    file.on("data", (c) => chunks.push(c));
-    file.on("end", () => {
-      fileData = Buffer.concat(chunks);
-      const safe = info.filename ? info.filename.replace(/\s+/g, "-").slice(0, 60) : "file";
-      fileName = `image-${Date.now()}-${safe}`;
-    });
+    file.on("data", (chunk) => chunks.push(chunk));
+    file.on("end", () => fileData = Buffer.concat(chunks));
   });
 
-  busboy.on("field", (name, val) => {
-    if (name === "title") title = val || title;
-    if (name === "description") description = val || "";
+  busboy.on("field", (name, value) => {
+    if (name === "title") title = value;
+    if (name === "description") description = value;
   });
 
   busboy.on("finish", async () => {
-    try {
-      if (!fileData) return res.status(400).json({ error: "No file uploaded" });
+    const fileName = `img-${Date.now()}`;
 
-      const uploaded = await put(fileName, fileData, {
-        access: "public",
-        addRandomSuffix: true
-      });
+    const blob = await put(fileName, fileData, {
+      access: "public"
+    });
 
-      const gallery = await readGallery();
-      const entry = { url: uploaded.url, title, description, uploadedAt: new Date().toISOString() };
-      gallery.push(entry);
+    const { data, error } = await supabase
+      .from("gallery")
+      .insert({
+        url: blob.url,
+        title,
+        description,
+        user_id: userId
+      })
+      .select()
+      .single();
 
-      await put("gallery.json", JSON.stringify(gallery), {
-        access: "public",
-        contentType: "application/json",
-        allowOverwrite: true
-      });
-
-      return res.status(200).json(entry);
-    } catch (err) {
-      console.error("upload error:", err);
-      return res.status(500).json({ error: "Upload failed" });
-    }
+    res.status(200).json(data);
   });
 
   req.pipe(busboy);

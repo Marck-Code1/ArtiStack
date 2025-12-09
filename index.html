@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="login">Iniciar sesion</div>
+  <button id="openLoginBtn" class="login-button">Iniciar sesión</button>
+
   <header class="header">
     <h1 class="slider-text"><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span><span>Bienvenidos a Artistack</span></h1>
   </header>
@@ -18,12 +19,22 @@
         Subir imagen
         <input type="file" id="imageInput" accept="image/*" />
       </label>
-    </section>
 
-    <section id="gallery" class="gallery"></section>
+
+    </section>
+   <section id="gallery" class="gallery">
+    <!--  Aca van las figuras de prueba  
+      <figure><img src="img/DibujoTecnico2.png" alt="img"><figcaption><div class="caption-row"><span>Dibujo</span><button class="delete-btn">✕</button></div><p>Tecnico</p></figcaption></figure>
+ -->
+
+
+    </section>
   </main>
 
-  <div id="titleModal" class="modal" aria-hidden="true">
+
+
+
+<div id="titleModal" class="modal" aria-hidden="true">
     <div class="modal-content">
       <button class="close-modal" id="closeModalBtn">✕</button>
       <h2>Información de la imagen</h2>
@@ -38,8 +49,28 @@
 
       <button id="submitTitle">Subir</button>
     </div>
-  </div>
+</div>
 
-  <script src="script.js"></script>
+
+
+
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <button class="close-modal" id="closeLoginBtn">✕</button>
+
+    <h2>Iniciar sesión</h2>
+
+    <label>Email</label>
+    <input id="loginEmail" type="email" placeholder="ejemplo@email.com">
+
+    <label>Contraseña</label>
+    <input id="loginPassword" type="password" placeholder="Contraseña">
+
+    <button id="loginBtn">Entrar</button>
+  </div>
+</div>
+
+  
 </body>
+<script type="module" src="script.js"></script>
 </html>
