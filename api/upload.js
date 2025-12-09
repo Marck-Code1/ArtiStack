@@ -6,7 +6,14 @@ export const config = {
   api: { bodyParser: false }
 };
 
-const supabase = createClient(
+// Cliente para AUTH (anon key)
+const supabaseAuth = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
+// Cliente para operaciones seguras (service_role)
+const supabaseDB = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE
 );
@@ -18,7 +25,7 @@ export default async function handler(req, res) {
   const token = req.headers.authorization?.replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Missing token" });
 
-  const { data: auth, error: authError } = await supabase.auth.getUser(token);
+  const { data: auth, error: authError } = await supabaseAuth.auth.getUser(token);
   if (authError || !auth?.user)
     return res.status(401).json({ error: "Unauthorized" });
 
@@ -30,7 +37,7 @@ export default async function handler(req, res) {
   busboy.on("file", (name, file) => {
     const chunks = [];
     file.on("data", chunk => chunks.push(chunk));
-    file.on("end", () => fileData = Buffer.concat(chunks));
+    file.on("end", () => (fileData = Buffer.concat(chunks)));
   });
 
   busboy.on("field", (name, value) => {
@@ -39,13 +46,13 @@ export default async function handler(req, res) {
   });
 
   busboy.on("finish", async () => {
-    if (!fileData) return res.status(400).json({ error: "No file uploaded" });
+    if (!fileData)
+      return res.status(400).json({ error: "No file uploaded" });
 
     const fileName = `img-${Date.now()}`;
-
     const blob = await put(fileName, fileData, { access: "public" });
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseDB
       .from("gallery")
       .insert({
         url: blob.url,
