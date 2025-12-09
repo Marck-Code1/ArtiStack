@@ -118,19 +118,26 @@ submitTitle.addEventListener("click", async () => {
   const description = document.getElementById("artDescription").value;
 
   const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return alert("Debes iniciar sesión");
 
   const formData = new FormData();
   formData.append("file", selectedFile);
   formData.append("title", title);
   formData.append("description", description);
-  formData.append("userId", session?.user?.id || "anon");
 
   const res = await fetch("/api/upload", {
     method: "POST",
+    headers: {
+      "Authorization": `Bearer ${session.access_token}`
+    },
     body: formData
   });
 
-  if (!res.ok) return alert("Error subiendo");
+  if (!res.ok) {
+    const t = await res.text();
+    console.log("UPLOAD ERROR:", t);
+    return alert("Error subiendo");
+  }
 
   titleModal.style.display = "none";
   imageInput.value = "";
@@ -142,7 +149,13 @@ submitTitle.addEventListener("click", async () => {
 ============================ */
 
 async function loadImages() {
-  const res = await fetch("/api/list");
+ const { data: { session } } = await supabase.auth.getSession();
+
+const res = await fetch("/api/list", {
+  headers: {
+    "Authorization": `Bearer ${session?.access_token || ""}`
+  }
+});
   const images = await res.json();
 
   const gallery = document.getElementById("gallery");
@@ -162,10 +175,13 @@ async function loadImages() {
 
     fig.querySelector(".delete-btn").onclick = async () => {
       await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: img.url })
-      });
+  method: "POST",
+  headers: { 
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${session.access_token}`
+  },
+  body: JSON.stringify({ url: img.url })
+});
       loadImages();
     };
 

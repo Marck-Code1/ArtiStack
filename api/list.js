@@ -6,10 +6,15 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("gallery")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    return res.status(500).json([]);
+  }
 
   res.status(200).json(data || []);
 }

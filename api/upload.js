@@ -14,12 +14,13 @@ const supabase = createClient(
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  // === VALIDAR TOKEN ===
   const token = req.headers.authorization?.replace("Bearer ", "");
+  if (!token) return res.status(401).json({ error: "Missing token" });
 
   const { data: auth, error: authError } = await supabase.auth.getUser(token);
-  if (authError || !auth?.user) {
+  if (authError || !auth?.user)
     return res.status(401).json({ error: "Unauthorized" });
-  }
 
   const userId = auth.user.id;
 
@@ -28,7 +29,7 @@ export default async function handler(req, res) {
 
   busboy.on("file", (name, file) => {
     const chunks = [];
-    file.on("data", (chunk) => chunks.push(chunk));
+    file.on("data", chunk => chunks.push(chunk));
     file.on("end", () => fileData = Buffer.concat(chunks));
   });
 
@@ -38,11 +39,11 @@ export default async function handler(req, res) {
   });
 
   busboy.on("finish", async () => {
+    if (!fileData) return res.status(400).json({ error: "No file uploaded" });
+
     const fileName = `img-${Date.now()}`;
 
-    const blob = await put(fileName, fileData, {
-      access: "public"
-    });
+    const blob = await put(fileName, fileData, { access: "public" });
 
     const { data, error } = await supabase
       .from("gallery")
@@ -54,6 +55,11 @@ export default async function handler(req, res) {
       })
       .select()
       .single();
+
+    if (error) {
+      console.error(error);
+      return res.status(500).json({ error: "Database insert failed" });
+    }
 
     res.status(200).json(data);
   });
